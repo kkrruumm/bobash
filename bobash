@@ -51,7 +51,7 @@ upload() {
     printf "$upload\n"
     printf "Logging to $logdir/log...\n"
     printf "$upload\n" >> "$logdir/log" ||
-        { printf "Logging upload to $logdir/log has failed." ; exit 1 ; }
+        { printf "Logging upload to $logdir/log has failed.\n" ; exit 1 ; }
 }
 
 delete() {
