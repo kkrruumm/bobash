@@ -12,6 +12,9 @@ if [ ! -f "$confdir"/config ]; then
 
     printf 'logdir="${XDG_DATA_HOME:-$HOME/.local/share}/bobash"\n' >> "$confdir"/config ||
         { printf "Creating default config at $confdir/config has failed.\n" ; exit 1 ; }
+
+    printf 'stripping="false"\n' >> "$confdir"/config ||
+        { printf "Creating default config at $confdir/config has failed.\n" ; exit 1 ; }
 fi
 
 . "$confdir"/config ||
@@ -31,7 +34,11 @@ help() {
 All uploads will be logged to $logdir/log, and IDs/delete keys can be found there.\n
 bobash upload file - Uploads file to the specified bobashare server.
 bobash delete id deletekey - Deletes ID on the specified bobashare server.
-bobash log - Outputs contents of $logdir/log.\n"
+bobash log - Outputs contents of $logdir/log.\n
+A few settings may be changed in $confdir/config,\n
+server - Set the API url for the target bobashare server.
+logdir - Set the logging directory for bobash uploads.
+stripping - Enable or disable exif data stripping from uploads, depends on exiftool. Valid values are true or false, defaults to false.\n"
 }
 
 upload() {
@@ -40,6 +47,19 @@ upload() {
 
     [ -e "$1" ] ||
         { printf "$1 not found. Cannot proceed.\n" ; exit 1 ; }
+
+    if [ "$stripping" == "true" ]; then
+        if ! which exiftool &>/dev/null ; then
+            printf "exiftool not found in PATH, yet stripping is enabled. Cannot continue.\n"
+            exit 1
+        fi
+
+        printf "Stripping exif data from $1...\n"
+        exiftool -all= "$1" ||
+            { printf "Stripping exif data from $1 has failed.\n" ; exit 1 ; }
+    else
+        printf "Proceeding without exif data stripping...\n"
+    fi
 
     local mime=$(file --mime-type "$1")
     local mime="${mime#*: }"
