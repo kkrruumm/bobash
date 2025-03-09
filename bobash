@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+confdir="${XDG_CONFIG_HOME:-$HOME/.config}/bobash"
+
+if [ ! -d "$confdir" ] ; then
+    mkdir "$confdir" ||
+        { printf 'Creating config directory has failed.\n' ; exit 1 ; }
+fi
+
+if [ ! -f "$confdir"/config ]; then
+    printf 'server="https://share.boba.best/api/v1"\n' >> "$confdir"/config ||
+        { printf "Creating default config at $confdir/config has failed.\n" ; exit 1 ; }
+
+    printf 'logdir="${XDG_DATA_HOME:-$HOME/.local/share}/bobash"\n' >> "$confdir"/config ||
+        { printf "Creating default config at $confdir/config has failed.\n" ; exit 1 ; }
+fi
+
+. "$confdir"/config ||
+    { printf "Sourcing config file at $confdir/config has failed.\n" ; exit 1 ; }
+
+dependencies=(printf curl file jq cat)
+for i in ${dependencies[@]}
+do
+    if ! which "$i" &>/dev/null ; then
+        printf "$i command not found in PATH. Cannot proceed.\n"
+        exit 1
+    fi
+done
+
+help() {
+    printf "bobash - bash client for bobashare\n
+All uploads will be logged to $logdir/log, and IDs/delete keys can be found there.\n
+bobash upload file - Uploads file to the specified bobashare server.
+bobash delete id deletekey - Deletes ID on the specified bobashare server.
+bobash log - Outputs contents of $logdir/log.\n"
+}
+
+upload() {
+    [ -d "$logdir" ] ||
+        { mkdir "$logdir" || printf "Failed to create log directory.\n" ; exit 1 ; }
+
+    [ -e "$1" ] ||
+        { printf "$1 not found. Cannot proceed.\n" ; exit 1 ; }
+
+    local mime=$(file --mime-type "$1")
+    local mime="${mime#*: }"
+
+    printf "Uploading $1...\n"
+    local upload=$(curl -H "Content-Type: $mime" -T "$1" "$server/upload/" | jq) ||
+        { printf "Failed to upload $1.\n" ; exit 1 ; }
+
+    printf "$upload\n"
+    printf "Logging to $logdir/log...\n"
+    printf "$upload\n" >> "$logdir/log" ||
+        { printf "Logging upload to $logdir/log has failed." ; exit 1 ; }
+}
+
+delete() {
+    printf "Deleting $1...\n"
+    curl -X DELETE "$server/delete/$1" -d "$2" ||
+        { printf 'Failed to delete.\n' ; exit 1 ; }
+}
+
+log() {
+    cat "$logdir"/log
+}
+
+case "$1" in
+    delete) delete "$2" "$3" ;;
+    upload) upload "$2" ;;
+    log) log ;;
+    *) help ;;
+esac
