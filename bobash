@@ -81,7 +81,11 @@ delete() {
 }
 
 log() {
-    cat "$logdir"/log
+    if [ -f "$logdir"/log ]; then
+        cat "$logdir"/log
+    else
+        printf "$logdir/log does not appear to exist. Cannot output log contents.\n"
+    fi
 }
 
 case "$1" in
