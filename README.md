@@ -1,5 +1,5 @@
 # bobash
-A simple bobashare client written in bash.
+A simple [bobashare](https://github.com/BBaoVanC/bobashare) client written in bash.
 
 # Usage
 
