@@ -6,9 +6,11 @@ A simple [bobashare](https://github.com/BBaoVanC/bobashare) client written in ba
 ```
 bobash upload file - Uploads file to the specified bobashare server.
 
-bobash delete id deletekey - Deletes ID on the specified bobashare server.
+bobash delete -i <id> -k <deletekey> - Deletes ID on the specified bobashare server.
 
 bobash log - Outputs contents of the log file.
+
+On uploads exiftool cannot strip, assuming stripping is enabled, you may add the --keep-exif flag to disable exif stripping on a per-upload basis.
 ```
 
 All uploads and their details (such as IDs and delete keys) will be logged in, by default, ``~/.local/share/bobash/log``.
@@ -23,7 +25,8 @@ stripping - Enable or disable exif data stripping from uploads, depends on exift
 
 # Dependencies
 * exiftool (Optional, for exif data stripping)
-* printf
+* bash
+* echo 
 * curl
 * file
 * jq
