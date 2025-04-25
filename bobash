@@ -20,8 +20,7 @@ fi
 . "$confdir"/config ||
     { echo "Sourcing config file at $confdir/config has failed." ; exit 1 ; }
 
-dependencies=(echo curl file jq cat)
-for i in ${dependencies[@]}
+for i in echo curl file jq cat
 do
     if ! which "$i" &>/dev/null ; then
         echo "$i command not found in PATH. Cannot proceed."
